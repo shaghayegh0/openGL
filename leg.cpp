@@ -1,7 +1,7 @@
 // Draw the left leg (thigh) with hip joint
     glPushMatrix();
     // Move the left leg and hip up slightly during a left step
-    glColor3f(0.4, 0.4, 0.4);  // Set color to gray for the leg
+    glColor3f(0.0, 0.0, 0.0);
     if (leftStep) {
         glTranslatef(0.0, 0.1, 0.0);  // Shift left hip up
     }
@@ -10,25 +10,25 @@
     // Add hip joint (small black sphere)
     glPushMatrix();
     glTranslatef(0.0, 0.5, 0.5);  // Move to the hip position
-    glColor3f(0.0, 0.0, 0.0);  // Set color to black for the hip joint
+    glColor3f(0.0, 0.0, 0.0);
     glutSolidSphere(0.2, 20, 20);  // Draw a small sphere for the hip joint
     glPopMatrix();
 
     glRotatef(leftLegAngle, 1, 0, 0); // Rotate leg for stepping
-    glScalef(0.4, 1.0, 0.2);         // Make the leg long and thin
+    glScalef(0.2, 1.0, 0.2);
     glutSolidCube(1.0);              // Draw a cube representing the thigh
 
     // Draw the left knee joint (small ball)
     glPushMatrix();
     glTranslatef(0.0, -0.6, 0.0);   // Move to the knee position
-    glColor3f(0.0, 0.0, 0.0);  // Set color to black for the knee joint
-    glutSolidSphere(0.2, 20, 20);  // Draw a small sphere for the knee joint
+    glColor3f(0.4, 0.4, 0.4);
+    glutSolidSphere(0.4, 20, 20);  // Draw a small sphere for the knee joint
     glPopMatrix();
 
     // Draw the left lower leg (attached to the thigh)
     glPushMatrix();
     glTranslatef(0.0, -1.2, 0.0);   // Move down to the knee
-    glColor3f(0.4, 0.4, 0.4);  // Set color to gray for the knee joint
+    glColor3f(0.0, 0.0, 0.0);
     glRotatef(leftKneeAngle, 1, 0, 0); // Rotate lower leg at the knee
     glutSolidCube(1.0);             // Draw a cube representing the lower leg
     glPopMatrix();
@@ -38,7 +38,7 @@
     // Draw the right leg (thigh) with hip joint
     glPushMatrix();
     // Move the right leg and hip up slightly during a right step
-    glColor3f(0.4, 0.4, 0.4);  // Set color to gray for the thigh
+    glColor3f(0.0, 0.0, 0.0);
     if (!leftStep) {
         glTranslatef(0.0, 0.1, 0.0);  // Shift right hip up
     }
@@ -47,27 +47,29 @@
     // Add hip joint (small black sphere)
     glPushMatrix();
     glTranslatef(0.0, 0.5, 0.5);  // Move to the hip position
-    glColor3f(0.0, 0.0, 0.0);  // Set color to black for the hip joint
+    glColor3f(0.0, 0.0, 0.0);  //
     glutSolidSphere(0.2, 20, 20);  // Draw a small sphere for the hip joint
     glPopMatrix();
 
     glRotatef(rightLegAngle, 1, 0, 0); // Rotate leg for stepping
-    glScalef(0.4, 1.0, 0.2);         // Make the leg long and thin
+    glScalef(0.2, 1.0, 0.2);         // Make the leg long and thin
     glutSolidCube(1.0);              // Draw a cube representing the thigh
 
     // Draw the right knee joint (small ball)
     glPushMatrix();
-    glTranslatef(0.0, -0.6, 0.0);   // Move to the knee position
-    glColor3f(0.0, 0.0, 0.0);  // Set color to black for the knee joint
-    glutSolidSphere(0.2, 20, 20);  // Draw a small sphere for the knee joint
+    glTranslatef(0.0, -0.6, -0.5);   // Move to the knee position
+    glColor3f(0.4, 0.4, 0.4);
+    glutSolidSphere(0.4, 20, 20);
     glPopMatrix();
 
     // Draw the right lower leg (attached to the thigh)
     glPushMatrix();
     glTranslatef(0.0, -1.2, 0.0);   // Move down to the knee
-    glColor3f(0.4, 0.4, 0.4);  // Set color to gray for the knee joint
+    glColor3f(0.0, 0.0, 0.0);
     glRotatef(rightKneeAngle, 1, 0, 0); // Rotate lower leg at the knee
     glutSolidCube(1.0);             // Draw a cube representing the lower leg
     glPopMatrix();
 
     glPopMatrix();
+
+
