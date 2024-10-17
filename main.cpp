@@ -27,28 +27,76 @@ void display() {
     gluLookAt(0.0, 5.0, 10.0,  // Eye position
               0.0, 0.0, 0.0,   // Look-at point
               0.0, 1.0, 0.0);  // Up direction
-
+    
+    
+    
+    
     // Set body color to metal gray
     glColor3f(0.5, 0.5, 0.5);  // Metallic gray
 
-    // Draw the body (a smaller square body)
+    // Draw the body (an uneven trapezoidal body)
     glPushMatrix();
     glTranslatef(0.0, 0.0, 0.0);  // Move to the origin
-    glScalef(1.0, 1.0, 1.0);      // Make the body small and square
-    glutSolidCube(1.0);           // Draw a cube
+
+    // Use GL_QUADS to draw the trapezoid-like body
+    glBegin(GL_QUADS);
+
+    // Front face (trapezoidal)
+    glVertex3f(-0.8, -0.5, 0.5);  // Bottom-left
+    glVertex3f(0.8, -0.5, 0.5);   // Bottom-right
+    glVertex3f(0.5, 0.5, 0.5);    // Top-right (smaller top width)
+    glVertex3f(-0.5, 0.5, 0.5);   // Top-left (smaller top width)
+
+    // Back face (trapezoidal)
+    glVertex3f(-0.8, -0.5, -0.5);  // Bottom-left
+    glVertex3f(0.8, -0.5, -0.5);   // Bottom-right
+    glVertex3f(0.5, 0.5, -0.5);    // Top-right (smaller top width)
+    glVertex3f(-0.5, 0.5, -0.5);   // Top-left (smaller top width)
+
+    // Left face (rectangular)
+    glVertex3f(-0.8, -0.5, 0.5);  // Front-bottom-left
+    glVertex3f(-0.8, -0.5, -0.5); // Back-bottom-left
+    glVertex3f(-0.5, 0.5, -0.5);  // Back-top-left
+    glVertex3f(-0.5, 0.5, 0.5);   // Front-top-left
+
+    // Right face (rectangular)
+    glVertex3f(0.8, -0.5, 0.5);   // Front-bottom-right
+    glVertex3f(0.8, -0.5, -0.5);  // Back-bottom-right
+    glVertex3f(0.5, 0.5, -0.5);   // Back-top-right
+    glVertex3f(0.5, 0.5, 0.5);    // Front-top-right
+
+    // Top face (smaller rectangle)
+    glVertex3f(-0.5, 0.5, 0.5);   // Front-top-left
+    glVertex3f(0.5, 0.5, 0.5);    // Front-top-right
+    glVertex3f(0.5, 0.5, -0.5);   // Back-top-right
+    glVertex3f(-0.5, 0.5, -0.5);  // Back-top-left
+
+    // Bottom face (larger rectangle)
+    glVertex3f(-0.8, -0.5, 0.5);  // Front-bottom-left
+    glVertex3f(0.8, -0.5, 0.5);   // Front-bottom-right
+    glVertex3f(0.8, -0.5, -0.5);  // Back-bottom-right
+    glVertex3f(-0.8, -0.5, -0.5); // Back-bottom-left
+
+    glEnd();
     glPopMatrix();
 
+    
+    
+    
+    
     // Draw the neck (a small cylinder)
     glPushMatrix();
     glTranslatef(0.0, 1.0, 0.0);  // Position the neck above the body
+    glRotatef(90, 1.0, 0.0, 0.0);
     GLUquadric* neck = gluNewQuadric();
-    gluCylinder(neck, 0.2, 0.2, 0.5, 20, 20);  // Small neck cylinder
+    gluCylinder(neck, 0.05, 0.1, 0.25, 20, 20);  // Small neck cylinder
     glPopMatrix();
 
     // Draw the head (a larger sphere) with rotation
     glPushMatrix();
     glTranslatef(0.0, 1.75, 0.0);  // Move the head above the neck
     glRotatef(headRotation, 0, 1, 0);  // Rotate the head around the neck
+    glScalef(1.0, 1.2, 1.0);
     glutSolidSphere(0.75, 20, 20); // Draw a bigger sphere for the head
 
     // Draw the eyes (two green spheres)
@@ -66,16 +114,16 @@ void display() {
     // Draw the cannon (cylinder on top of the head with rotation)
     glColor3f(0.0, 0.0, 0.0);  // Set color to black
     glPushMatrix();
-    glTranslatef(0.0, 1.2, 0.0);  // Place the cannon directly on top of the head
+    glTranslatef(0.0, 1.0, 0.0);  // Place the cannon directly on top of the head
     glRotatef(90, 1, 0, 0);  // Rotate 90 degrees around the x-axis to make it vertical
     glRotatef(cannonRotation, 0, 0, 1);  // Apply the rotation around the z-axis for spinning
     GLUquadric* cannon = gluNewQuadric();
-    gluCylinder(cannon, 0.1, 0.1, 0.5, 20, 20);  // Draw the cannon cylinder
+    gluCylinder(cannon, 0.08, 0.1, 0.3, 20, 20);  // Draw the cannon cylinder
 
     // Add small sub-part to the cannon (small sphere)
     glColor3f(1.0, 0.0, 0.0);  // Set color to red for sub-part
     glPushMatrix();
-    glTranslatef(0.1, 0.1, 0.0);  // Position a small sphere on the side of the cannon
+    glTranslatef(0.08, 0.1, 0.0);  // Position a small sphere on the side of the cannon
     glutSolidSphere(0.05, 10, 10);  // Draw a small sphere
     glPopMatrix();
     
@@ -83,73 +131,178 @@ void display() {
 
     glPopMatrix();  // End head drawing
 
-    // Set color to black for arms and legs
-    glColor3f(0.4, 0.4, 0.4);  // Set color to black
-
-    // Draw the left arm (long and thin)
+   
+    // Draw left arm
     glPushMatrix();
-    glTranslatef(-0.75, 0.5, 0.0);  // Position on the left side
-    glRotatef(leftArmAngle, 1, 0, 0);  // Rotate the arm around its joint
-    glRotatef(90, 0, 1, 0);        // Align the cylinder
-    GLUquadric* leftArm = gluNewQuadric();
-    gluCylinder(leftArm, 0.1, 0.1, 2.0, 20, 20);  // Draw a long, thin cylinder
+    glTranslatef(-0.65, 0.6, 0.0); // Position on the left side
+
+    // Shoulder joint
+    glPushMatrix();
+    glColor3f(0.0, 0.0, 0.0);  // Set color to black for the shoulder joint
+    glutSolidSphere(0.2, 20, 20); // Shoulder joint sphere
     glPopMatrix();
 
-    // Draw the right arm (long and thin)
+    // Rotate arm outward for "V" shape
+    glRotatef(-30, 0, 0, 1);
+
+    glRotatef(leftArmAngle, 1, 0, 0); // Rotate arm at shoulder
+    glTranslatef(0.0, -0.5, 0.0); // Move down for upper arm
+
+    // Upper arm
     glPushMatrix();
-    glTranslatef(0.75, 0.5, 0.0);   // Position on the right side
-    glRotatef(rightArmAngle, 1, 0, 0);  // Rotate the arm around its joint
-    glRotatef(-90, 0, 1, 0);       // Align the cylinder
-    GLUquadric* rightArm = gluNewQuadric();
-    gluCylinder(rightArm, 0.1, 0.1, 2.0, 20, 20);  // Draw a long, thin cylinder
+    glColor3f(0.0, 0.0, 0.0);  // Set color to black for the upper arm
+    glScalef(0.2, 0.8, 0.2);  // Thin and long upper arm
+    glutSolidCube(1.0);
     glPopMatrix();
 
-    // Draw the left leg (thigh)
+    // Elbow joint
     glPushMatrix();
-    glTranslatef(-0.3, -1.0, 0.0);  // Position below the body
-    glRotatef(leftLegAngle, 1, 0, 0); // Rotate leg for stepping
-    glScalef(0.2, 1.0, 0.2);         // Make the leg long and thin
-    glutSolidCube(1.0);              // Draw a cube representing the thigh
+    glTranslatef(0.0, -0.5, 0.0); // Move to elbow position
+    glColor3f(0.5, 0.5, 0.5);  // Set color to black for the elbow joint
+    glutSolidSphere(0.15, 20, 20); // Elbow joint sphere
+    glPopMatrix();
+
+    // Lower arm
+    glPushMatrix();
+    glTranslatef(0.0, -1.0, 0.0);  // Move down to lower arm position
+    glColor3f(0.0, 0.0, 0.0); // Set color to black for the lower arm
+    glScalef(0.2, 0.8, 0.2);  // Thin lower arm
+    glutSolidCube(1.0);
+    glPopMatrix();
+
+    // Palm
+    glPushMatrix();
+    glTranslatef(0.0, -1.5, 0.0);  // Move to the palm position
+    glColor3f(0.4, 0.4, 0.4);  // Gray palm
+    glutSolidSphere(0.25, 20, 20);  // Palm sphere
+    glPopMatrix();
+
+    glPopMatrix();
+
+    // Draw right arm
+    glPushMatrix();
+    glTranslatef(0.65, 0.6, 0.0); // Position on the right side
+
+    // Shoulder joint
+    glPushMatrix();
+    glColor3f(0.0, 0.0, 0.0);  // Set color to black for the shoulder joint
+    glutSolidSphere(0.2, 20, 20); // Shoulder joint sphere
+    glPopMatrix();
+
+    // Rotate arm outward for "V" shape
+    glRotatef(30, 0, 0, 1); // Rotate around z-axis for a "V" angle
+
+    glRotatef(rightArmAngle, 1, 0, 0); // Rotate arm at shoulder
+    glTranslatef(0.0, -0.5, 0.0); // Move down for upper arm
+
+    // Upper arm
+    glPushMatrix();
+    glColor3f(0.0, 0.0, 0.0);  // Set color to black for the upper arm
+    glScalef(0.2, 0.8, 0.2);  // Thin and long upper arm
+    glutSolidCube(1.0);
+    glPopMatrix();
+
+    // Elbow joint
+    glPushMatrix();
+    glTranslatef(0.0, -0.5, 0.0); // Move to elbow position
+    glColor3f(0.5, 0.5, 0.5);  // Set color to gray for the elbow joint
+    glutSolidSphere(0.15, 20, 20); // Elbow joint sphere
+    glPopMatrix();
+
+    // Lower arm
+    glPushMatrix();
+    glTranslatef(0.0, -1.0, 0.0);  // Move down to lower arm position
+    glColor3f(0.0, 0.0, 0.0); // Set color to black for the lower arm
+    glScalef(0.2, 0.8, 0.2);  // Thin lower arm
+    glutSolidCube(1.0);
+    glPopMatrix();
+
+    // Palm
+    glPushMatrix();
+    glTranslatef(0.0, -1.5, 0.0);  // Move to the palm position
+    glColor3f(0.4, 0.4, 0.4);  // Gray palm
+    glutSolidSphere(0.25, 20, 20);  // Palm sphere
+    glPopMatrix();
+
+    glPopMatrix();
+
     
-    //Draw the left joint
+    
+    // Draw the left leg (thigh) with hip joint
+    glPushMatrix();
+    // Move the left leg and hip up slightly during a left step
+    glColor3f(0.0, 0.0, 0.0);
+    if (leftStep) {
+        glTranslatef(0.0, 0.1, 0.0);  // Shift left hip up
+    }
+    glTranslatef(-0.3, -1.0, 0.0);  // Position below the body
+
+    // Add hip joint (small black sphere)
+    glPushMatrix();
+    glTranslatef(0.0, 0.5, 0.5);  // Move to the hip position
+    glColor3f(0.0, 0.0, 0.0);
+    glutSolidSphere(0.2, 20, 20);  // Draw a small sphere for the hip joint
+    glPopMatrix();
+
+    glRotatef(leftLegAngle, 1, 0, 0); // Rotate leg for stepping
+    glScalef(0.2, 1.0, 0.2);
+    glutSolidCube(1.0);              // Draw a cube representing the thigh
+
+    // Draw the left knee joint (small ball)
     glPushMatrix();
     glTranslatef(0.0, -0.6, 0.0);   // Move to the knee position
-    glColor3f(0.0, 0.0, 0.0);  // Set color to black for the knee joint
-    glutSolidSphere(0.15, 20, 20);  // Draw a small sphere for the knee joint
+    glColor3f(0.4, 0.4, 0.4);
+    glutSolidSphere(0.4, 20, 20);  // Draw a small sphere for the knee joint
     glPopMatrix();
-    
+
     // Draw the left lower leg (attached to the thigh)
     glPushMatrix();
-    glTranslatef(0.0, -1.0, 0.0);   // Move down to the knee
+    glTranslatef(0.0, -1.2, 0.0);   // Move down to the knee
+    glColor3f(0.0, 0.0, 0.0);
     glRotatef(leftKneeAngle, 1, 0, 0); // Rotate lower leg at the knee
     glutSolidCube(1.0);             // Draw a cube representing the lower leg
     glPopMatrix();
 
     glPopMatrix();
 
-    // Draw the right leg (thigh)
+    // Draw the right leg (thigh) with hip joint
     glPushMatrix();
+    // Move the right leg and hip up slightly during a right step
+    glColor3f(0.0, 0.0, 0.0);
+    if (!leftStep) {
+        glTranslatef(0.0, 0.1, 0.0);  // Shift right hip up
+    }
     glTranslatef(0.3, -1.0, 0.0);   // Position below the body
+
+    // Add hip joint (small black sphere)
+    glPushMatrix();
+    glTranslatef(0.0, 0.5, 0.5);  // Move to the hip position
+    glColor3f(0.0, 0.0, 0.0);  //
+    glutSolidSphere(0.2, 20, 20);  // Draw a small sphere for the hip joint
+    glPopMatrix();
+
     glRotatef(rightLegAngle, 1, 0, 0); // Rotate leg for stepping
     glScalef(0.2, 1.0, 0.2);         // Make the leg long and thin
     glutSolidCube(1.0);              // Draw a cube representing the thigh
 
-    
     // Draw the right knee joint (small ball)
     glPushMatrix();
-    glTranslatef(0.0, -0.6, 0.0);   // Move to the knee position
-    glColor3f(1.0, 0.0, 0.0);  // Set color to black for the knee joint
-    glutSolidSphere(0.15, 20, 20);  // Draw a small sphere for the knee joint
+    glTranslatef(0.0, -0.6, -0.5);   // Move to the knee position
+    glColor3f(0.4, 0.4, 0.4);
+    glutSolidSphere(0.4, 20, 20);
     glPopMatrix();
-    
+
     // Draw the right lower leg (attached to the thigh)
     glPushMatrix();
-    glTranslatef(0.0, -1.0, 0.0);   // Move down to the knee
+    glTranslatef(0.0, -1.2, 0.0);   // Move down to the knee
+    glColor3f(0.0, 0.0, 0.0);
     glRotatef(rightKneeAngle, 1, 0, 0); // Rotate lower leg at the knee
     glutSolidCube(1.0);             // Draw a cube representing the lower leg
     glPopMatrix();
 
     glPopMatrix();
+
+
 
     glutSwapBuffers();
 }
