@@ -1,17 +1,27 @@
 #include <GLUT/glut.h>
+#include <thread>
+#include <chrono>
 
 // Initial angles for joint rotations
 float leftArmAngle = 0.0f;
 float rightArmAngle = 0.0f;
 float cannonRotation = 0.0f;
-float leftLegAngle = 0.0f;
-float rightLegAngle = 0.0f;
-float leftKneeAngle = 0.0f;   // Angle for left knee joint
-float rightKneeAngle = 0.0f;  // Angle for right knee joint
 float headRotation = 0.0f;   // New variable for head rotation
-bool animating = false;
+
+float hipAngle = 0.0f;  // Angle for the hip joint movement
+float hipVerticalShift = 0.0f;  // Vertical shift for hip during walking
+
+float hipShift = 0.0f; // Controls hip vertical movement
+float leftLegAngle = 0.0f, rightLegAngle = 0.0f;
+float leftKneeAngle = 180.0f, rightKneeAngle = 180.0f;
+float hipIncrement = 0.5f; // Hip vertical shift increment
+float legIncrement = 5.0f; // Leg rotation increment
+
 bool cannonSpinning = false;  // Flag to track if the cannon is spinning
 bool leftStep = true;  // Track which leg is stepping (true = left leg, false = right leg)
+bool animating = true; // Toggle animation
+
+
 
 
 // Function prototypes
@@ -96,7 +106,7 @@ void display() {
     glPushMatrix();
         glTranslatef(0.0, 1.75, 0.0);  // Move the head above the neck
         glRotatef(headRotation, 0, 1, 0);  // Rotate the head around the neck
-        glScalef(1.0, 1.2, 1.0);
+        glScalef(1.0, 1.1, 1.0);
     glutSolidSphere(0.75, 20, 20); // Draw a bigger sphere for the head
 
     // Draw the eyes (two green spheres)
@@ -227,81 +237,68 @@ void display() {
     glPopMatrix();
 
     
-    
-    // Draw the left leg (thigh) with hip joint
+    // Draw the hip joint (rectangle)
     glPushMatrix();
-    // Move the left leg and hip up slightly during a left step
-        glColor3f(0.0, 0.0, 0.0);
-        if (leftStep) {
-            glTranslatef(0.0, 0.1, 0.0);  // Shift left hip up
-        }
-        glTranslatef(-0.3, -1.0, 0.0);  // Position below the body
+        // Apply vertical shift and hip rotation
+        glTranslatef(0.0, -1 + hipVerticalShift, 0.0);  // Move hip under body, apply vertical shift
+        glRotatef(hipAngle, 0, 1, 0);  // Rotate hip joint
 
-    // Add hip joint (small black sphere)
+        // ** Draw the legs before scaling the hip **
+        // Left leg
         glPushMatrix();
-            glTranslatef(0.0, 0.5, 0.5);  // Move to the hip position
-            glColor3f(0.0, 0.0, 0.0);
-            glutSolidSphere(0.2, 20, 20);  // Draw a small sphere for the hip joint
+            // Translate relative to the hip position
+            glTranslatef(-0.3, -0.6, 0.0);  // Adjust leg translation
+            glRotatef(leftLegAngle, 1, 0, 0); // Rotate leg at the hip joint
+            glColor3f(0.0, 0.0, 0.0); // Black thigh
+            glScalef(0.2, 1.0, 0.2);  // Scale for leg
+            glutSolidCube(1.0);  // Thigh
+
+            // Draw the knee and lower leg
+            glPushMatrix();
+                glTranslatef(0.0, -0.6, 0.0); // Move to knee position
+                glColor3f(0.4, 0.4, 0.4); // Gray knee joint
+                glutSolidSphere(0.2, 20, 20); // Knee joint
+
+                // Lower leg
+                glPushMatrix();
+                    glTranslatef(0.0, -0.6, 0.0); // Move down from knee
+                    glRotatef(leftKneeAngle, 1, 0, 0); // Rotate at knee
+                    glColor3f(0.0, 0.0, 0.0); // Black lower leg
+                    glutSolidCube(1.0); // Lower leg
+                glPopMatrix();
+            glPopMatrix();
         glPopMatrix();
 
-        glRotatef(leftLegAngle, 1, 0, 0); // Rotate leg for stepping
-        glScalef(0.2, 1.0, 0.2);
-        glutSolidCube(1.0);              // Draw a cube representing the thigh
-
-    // Draw the left knee joint (small ball)
+        // Right leg
         glPushMatrix();
-            glTranslatef(0.0, -0.6, 0.0);   // Move to the knee position
-            glColor3f(0.4, 0.4, 0.4);
-            glutSolidSphere(0.4, 20, 20);  // Draw a small sphere for the knee joint
+            glTranslatef(0.3, -0.6, 0.0);  // Adjust right leg translation
+            glRotatef(rightLegAngle, 1, 0, 0); // Rotate leg at hip joint
+            glColor3f(0.0, 0.0, 0.0); // Black thigh
+            glScalef(0.2, 1.0, 0.2);  // Scale for leg
+            glutSolidCube(1.0);  // Thigh
+
+            // Knee and lower leg
+            glPushMatrix();
+                glTranslatef(0.0, -0.6, 0.0); // Move to knee position
+                glColor3f(0.4, 0.4, 0.4); // Gray knee joint
+                glutSolidSphere(0.2, 20, 20); // Knee joint
+
+                // Lower leg
+                glPushMatrix();
+                    glTranslatef(0.0, -0.6, 0.0); // Move down from knee
+                    glRotatef(rightKneeAngle, 1, 0, 0); // Rotate at knee
+                    glColor3f(0.0, 0.0, 0.0); // Black lower leg
+                    glutSolidCube(1.0); // Lower leg
+                glPopMatrix();
+            glPopMatrix();
         glPopMatrix();
 
-    // Draw the left lower leg (attached to the thigh)
-        glPushMatrix();
-            glTranslatef(0.0, -1.2, 0.0);   // Move down to the knee
-            glColor3f(0.0, 0.0, 0.0);
-            glRotatef(leftKneeAngle, 1, 0, 0); // Rotate lower leg at the knee
-            glutSolidCube(1.0);             // Draw a cube representing the lower leg
-        glPopMatrix();
+        // Scale the hip at the end
+        glColor3f(0.5, 0.0, 0.0); // Color for hip (reddish)
+        glScalef(1.0, 0.2, 0.5);  // Scale to make hip rectangle
+        glutSolidCube(1.0);       // Draw hip cube
 
-    glPopMatrix();
-
-    // Draw the right leg (thigh) with hip joint
-    glPushMatrix();
-    // Move the right leg and hip up slightly during a right step
-        glColor3f(0.0, 0.0, 0.0);
-        if (!leftStep) {
-            glTranslatef(0.0, 0.1, 0.0);  // Shift right hip up
-        }
-        glTranslatef(0.3, -1.0, 0.0);   // Position below the body
-
-    // Add hip joint (small black sphere)
-        glPushMatrix();
-            glTranslatef(0.0, 0.5, 0.5);  // Move to the hip position
-            glColor3f(0.0, 0.0, 0.0);  //
-            glutSolidSphere(0.2, 20, 20);  // Draw a small sphere for the hip joint
-        glPopMatrix();
-
-        glRotatef(rightLegAngle, 1, 0, 0); // Rotate leg for stepping
-        glScalef(0.2, 1.0, 0.2);         // Make the leg long and thin
-        glutSolidCube(1.0);              // Draw a cube representing the thigh
-
-    // Draw the right knee joint (small ball)
-        glPushMatrix();
-            glTranslatef(0.0, -0.6, -0.5);   // Move to the knee position
-            glColor3f(0.4, 0.4, 0.4);
-            glutSolidSphere(0.4, 20, 20);
-        glPopMatrix();
-
-    // Draw the right lower leg (attached to the thigh)
-        glPushMatrix();
-            glTranslatef(0.0, -1.2, 0.0);   // Move down to the knee
-            glColor3f(0.0, 0.0, 0.0);
-            glRotatef(rightKneeAngle, 1, 0, 0); // Rotate lower leg at the knee
-            glutSolidCube(1.0);             // Draw a cube representing the lower leg
-        glPopMatrix();
-
-    glPopMatrix();
-
+    glPopMatrix();  // End of hip joint and leg assembly
 
 
     glutSwapBuffers();
@@ -319,33 +316,44 @@ void updateCannonRotation(int value) {
     }
 }
 
-// Timer function for leg animation (walking)
+// write a step forward function where it shows taking one step
 void stepForward(int value) {
     if (animating) {
-        if (leftStep) {
-            // Left leg steps forward
-            leftLegAngle += 5.0f;
-            rightLegAngle -= 5.0f;
-            leftKneeAngle = -leftLegAngle / 2.0f; // Simulate bending the knee
-
-            if (leftLegAngle >= 30.0f) {
-                leftStep = false;  // Switch to right leg
-            }
-        } else {
-            // Right leg steps forward
-            leftLegAngle -= 5.0f;
-            rightLegAngle += 5.0f;
-            rightKneeAngle = -rightLegAngle / 2.0f; // Simulate bending the knee
-
-            if (rightLegAngle >= 30.0f) {
-                leftStep = true;  // Switch to left leg
-            }
+        // Step phase: right leg moves
+        if (rightLegAngle < 30.0f) {
+            // Right leg moves forward
+            rightLegAngle += legIncrement;
+            // Right knee bends
+            rightKneeAngle -= legIncrement;
+            if (rightKneeAngle < 120.0f) rightKneeAngle = 120.0f;
+            // Right side of the hip shifts up, left side shifts down
+            hipVerticalShift += hipIncrement;
+            if (hipVerticalShift > 0.3f) hipVerticalShift = 0.3f;  // Limit hip shift
+        } else if (rightLegAngle >= 30.0f && rightKneeAngle < 180.0f) {
+            // Straighten the right knee
+            rightKneeAngle += legIncrement;
+            if (rightKneeAngle > 180.0f) rightKneeAngle = 180.0f;
+            
+            
+            // Reset hip shift back down
+            hipVerticalShift -= hipIncrement;
+            if (hipVerticalShift < 0.0f) hipVerticalShift = 0.0f;
         }
 
-        glutPostRedisplay();  // Redraw the scene with updated leg positions
-        glutTimerFunc(100, stepForward, 0);  // Continue stepping every 100ms
+        // Stop animation after one full step
+        if (rightLegAngle >= 30.0f && rightKneeAngle == 180.0f && hipVerticalShift == 0.0f) {
+            animating = false;
+        }
+
+        // Redraw the scene with updated leg and hip positions
+        glutPostRedisplay();
+        // Continue animation every 100ms
+        glutTimerFunc(100, stepForward, 0);
     }
 }
+
+
+
 
 // Function to handle reshaping the window
 void reshape(int width, int height) {
@@ -356,14 +364,23 @@ void reshape(int width, int height) {
     glMatrixMode(GL_MODELVIEW);
 }
 
+
+
+
 // Function to handle keyboard input
 void keyboard(unsigned char key, int x, int y) {
     switch (key) {
         case 'l':  // Rotate left arm
             leftArmAngle += 5.0f;
             break;
+        case 'L':  // Rotate left arm
+            leftArmAngle -= 5.0f;
+            break;
         case 'r':  // Rotate right arm
             rightArmAngle += 5.0f;
+            break;
+        case 'R':  // Rotate right arm
+            rightArmAngle -= 5.0f;
             break;
         case 'c':  // Start cannon spinning
             if (!cannonSpinning) {
@@ -374,14 +391,24 @@ void keyboard(unsigned char key, int x, int y) {
         case 'C':  // Stop cannon spinning
             cannonSpinning = false;
             break;
+            
+        case 'h':  // Rotate hip joint positively
+            hipAngle += 5.0f;
+            break;
+        case 'H':  // Rotate hip joint negatively
+            hipAngle -= 5.0f;
+            break;
+            
+        
         case 'n':  // Rotate head
             headRotation += 5.0f;
             break;
-        case 'w':  // Start walking animation
+            
+        case 'w':  // Start stepForward animation
             animating = true;
             glutTimerFunc(100, stepForward, 0);  // Start the timer for the animation
             break;
-        case 'W':  // Reset walking animation
+        case 'W':  // Reset stepForward animation
             leftLegAngle = 0.0f;
             rightLegAngle = 0.0f;
             leftKneeAngle = 0.0f;
