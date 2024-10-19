@@ -1,7 +1,10 @@
 #include <GLUT/glut.h>
 #include <thread>
 #include <chrono>
-//#include "QuadMesh.h"
+
+#include "QuadMesh.h"
+#include "VECTOR3D.h"
+
 
 
 // Initial angles for joint rotations
@@ -27,9 +30,11 @@ float stepSize = 0.1f;
 bool cannonSpinning = false;  // Flag to track if the cannon is spinning
 bool leftStep = true;  // Track which leg is stepping (true = left leg, false = right leg)
 bool animating = true; // Toggle animation
+bool stepWithRightLeg = true;  // Flag to alternate between legs
 
 
 
+QuadMesh quadMesh;
 
 
 
@@ -48,7 +53,8 @@ void display() {
               0.0, 1.0, 0.0);  // Up direction
     
     
-    
+    quadMesh.setupLighting();  // Set up lighting for the scene
+
     
     // Set body color to metal gray
     glColor3f(0.5, 0.5, 0.5);  // Metallic gray
@@ -130,25 +136,36 @@ void display() {
             glutSolidSphere(0.2, 20, 20);   // Draw right eye
         glPopMatrix();
 
-        // Draw the cannon (cylinder on top of the head with rotation)
+        
+        // Draw the antena
         glColor3f(0.0, 0.0, 0.0);  // Set color to black
         glPushMatrix();
             glTranslatef(0.0, 1.0, 0.0);  // Place the cannon directly on top of the head
             glRotatef(90, 1, 0, 0);  // Rotate 90 degrees around the x-axis to make it vertical
-            glRotatef(cannonRotation, 0, 0, 1);  // Apply the rotation around the z-axis for spinning
-            GLUquadric* cannon = gluNewQuadric();
-            gluCylinder(cannon, 0.08, 0.1, 0.3, 20, 20);  // Draw the cannon cylinder
+            GLUquadric* antena = gluNewQuadric();
+            gluCylinder(antena, 0.08, 0.1, 0.3, 20, 20);  // Draw the cannon cylinder
 
-            // Add small sub-part to the cannon (small sphere)
-            glColor3f(1.0, 0.0, 0.0);  // Set color to red for sub-part
+    
+    
+            // Draw the cannon (cylinder on top of the head with rotation)
+                glColor3f(1.0, 1.0, 0.0);  // Set color to yellow
                 glPushMatrix();
-                    glTranslatef(0.08, 0.1, 0.0);  // Position a small sphere on the side of the cannon
-                    glutSolidSphere(0.05, 10, 10);  // Draw a small sphere
-                glPopMatrix();
-        
-            glPopMatrix();  // End cannon drawing
+                    glTranslatef(0.0, 0.2, 0.1);  // Place the cannon directly on top of the head
+                    glRotatef(90, 1, 0, 0);  // Rotate 90 degrees around the x-axis to make it vertical
+                    glRotatef(cannonRotation, 0, 0, 1);  // Apply the rotation around the z-axis for spinning
+                    GLUquadric* cannon = gluNewQuadric();
+                    gluCylinder(cannon, 0.05, 0.05, 0.2, 20, 20);  // Draw the cannon cylinder
 
-        glPopMatrix();  // End head drawing
+                // Add small sub-part to the cannon (small sphere)
+                glColor3f(1.0, 0.0, 0.0);  // Set color to red for sub-part
+                    glPushMatrix();
+                        glTranslatef(0.05, 0.05, 0.0);  // Position a small sphere on the side of the cannon
+                        glutSolidSphere(0.05, 10, 10);  // Draw a small sphere
+                    glPopMatrix();
+            
+                glPopMatrix();  // End cannon drawing
+        glPopMatrix(); // End antena
+    glPopMatrix();  // End head drawing
 
        
         // Draw left arm
@@ -310,6 +327,10 @@ void display() {
         glPopMatrix();  // End of hip joint and leg assembly
     glPopMatrix(); // End of body
     
+    
+    quadMesh.drawQuadMesh();  // Draw the ground for shadows
+
+    
     glutSwapBuffers();
 }
 
@@ -338,8 +359,13 @@ void stepForward(int value) {
             // Right side of the hip shifts up, left side shifts down
             hipVerticalShift += hipIncrement;
             if (hipVerticalShift > 0.3f) hipVerticalShift = 0.3f;  // Limit hip shift
-            //Update the bot's position (moving in the z direction)
-            botPositionZ += stepSize;
+            
+            // Update the bot's position (moving in the direction of hip rotation)
+            float angleRadians = hipAngle * (M_PI / 180.0f);  // Convert hipAngle to radians
+            botPositionX += stepSize * sin(angleRadians);  // Move along X based on hip rotation
+            botPositionZ += stepSize * cos(angleRadians);  // Move along Z based on hip rotation
+
+            
         } else if (rightLegAngle <= -30.0f && rightKneeAngle < 180.0f) {
             // Straighten the right knee
             rightKneeAngle += legIncrement;
@@ -366,6 +392,82 @@ void stepForward(int value) {
 
 
 
+
+
+
+
+void walking(int value) {
+    if (animating) {
+        if (stepWithRightLeg) {
+            // Right leg moves
+            if (rightLegAngle > -30.0f) {
+                rightLegAngle -= legIncrement;
+                rightKneeAngle -= legIncrement;
+                if (rightKneeAngle < 120.0f) rightKneeAngle = 120.0f;
+                hipVerticalShift += hipIncrement;
+                if (hipVerticalShift > 0.3f) hipVerticalShift = 0.3f;
+                // Update the bot's position (moving in the direction of hip rotation)
+                float angleRadians = hipAngle * (M_PI / 180.0f);  // Convert hipAngle to radians
+                botPositionX += stepSize * sin(angleRadians);  // Move along X based on hip rotation
+                botPositionZ += stepSize * cos(angleRadians);  // Move along Z based on hip rotation
+            } else if (rightLegAngle <= -30.0f && rightKneeAngle < 180.0f) {
+                rightKneeAngle += legIncrement;
+                if (rightKneeAngle > 180.0f) rightKneeAngle = 180.0f;
+                hipVerticalShift -= hipIncrement;
+                if (hipVerticalShift < 0.0f) hipVerticalShift = 0.0f;
+            }
+
+            if (rightLegAngle <= -30.0f && rightKneeAngle == 180.0f && hipVerticalShift == 0.0f) {
+                stepWithRightLeg = false;  // Switch to left leg after right leg completes
+                // Reset angles for the next cycle
+                rightLegAngle = 0.0f;
+                rightKneeAngle = 180.0f;
+            }
+        } else {
+            // Left leg moves
+            if (leftLegAngle > -30.0f) {
+                leftLegAngle -= legIncrement;
+                leftKneeAngle -= legIncrement;
+                if (leftKneeAngle < 120.0f) leftKneeAngle = 120.0f;
+                hipVerticalShift += hipIncrement;
+                if (hipVerticalShift > 0.3f) hipVerticalShift = 0.3f;
+                // Update the bot's position (moving in the direction of hip rotation)
+                float angleRadians = hipAngle * (M_PI / 180.0f);  // Convert hipAngle to radians
+                botPositionX += stepSize * sin(angleRadians);  // Move along X based on hip rotation
+                botPositionZ += stepSize * cos(angleRadians);  // Move along Z based on hip rotation
+            } else if (leftLegAngle <= -30.0f && leftKneeAngle < 180.0f) {
+                leftKneeAngle += legIncrement;
+                if (leftKneeAngle > 180.0f) leftKneeAngle = 180.0f;
+                hipVerticalShift -= hipIncrement;
+                if (hipVerticalShift < 0.0f) hipVerticalShift = 0.0f;
+            }
+
+            if (leftLegAngle <= -30.0f && leftKneeAngle == 180.0f && hipVerticalShift == 0.0f) {
+                stepWithRightLeg = true;  // Switch to right leg after left leg completes
+                // Reset angles for the next cycle
+                leftLegAngle = 0.0f;
+                leftKneeAngle = 180.0f;
+            }
+        }
+
+        // Redraw the scene with updated leg and hip positions
+        glutPostRedisplay();
+        // Continue the walking animation every 100ms
+        glutTimerFunc(100, walking, 0); // Continue walking, not stepForward
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 // Function to handle reshaping the window
 void reshape(int width, int height) {
     glViewport(0, 0, width, height);
@@ -385,16 +487,24 @@ void updateBotMovement() {
 void keyboard(unsigned char key, int x, int y) {
     switch (key) {
         case 'l':  // Rotate left arm
-            leftArmAngle += 5.0f;
+            if (leftArmAngle < 45.0f) {  // Set an upper limit
+                leftArmAngle += 5.0f;
+            }
             break;
-        case 'L':  // Rotate left arm
-            leftArmAngle -= 5.0f;
+        case 'L':  // Rotate left arm in the opposite direction
+            if (leftArmAngle > -45.0f) {  // Set a lower limit
+                leftArmAngle -= 5.0f;
+            }
             break;
         case 'r':  // Rotate right arm
-            rightArmAngle += 5.0f;
+            if (rightArmAngle < 45.0f) { //set limit
+                rightArmAngle += 5.0f;
+            }
             break;
         case 'R':  // Rotate right arm
-            rightArmAngle -= 5.0f;
+            if (rightArmAngle > -45.0) { //set limit
+                rightArmAngle -= 5.0f;
+            }
             break;
         case 'c':  // Start cannon spinning
             if (!cannonSpinning) {
@@ -418,16 +528,23 @@ void keyboard(unsigned char key, int x, int y) {
             headRotation += 5.0f;
             break;
             
+        case 't':  // Start continuous walking
+            animating = true;
+            glutTimerFunc(100, walking, 0);  // Start with the first step
+            break;
+        
         case 'w':  // Start stepForward animation
             animating = true;
             glutTimerFunc(100, stepForward, 0);  // Start the timer for the animation
             break;
+            
         case 'W':  // Reset stepForward animation
             leftLegAngle = 0.0f;
             rightLegAngle = 0.0f;
             leftKneeAngle = 0.0f;
             rightKneeAngle = 0.0f;
             botPositionZ = 0.0f;
+            botPositionX = 0.0f;
             animating = false;
             break;
     }
@@ -438,6 +555,8 @@ void keyboard(unsigned char key, int x, int y) {
 void initOpenGL() {
     glClearColor(1.0, 1.0, 1.0, 1.0);  // White background
     glEnable(GL_DEPTH_TEST);           // Enable depth testing
+    glEnable(GL_NORMALIZE);            // Normalize normals for lighting
+
 }
 
 
