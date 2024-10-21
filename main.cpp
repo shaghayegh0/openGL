@@ -123,7 +123,55 @@ void display() {
             glRotatef(headRotation, 0, 1, 0);  // Rotate the head around the neck
             glScalef(1.0, 1.1, 1.0);
         glutSolidSphere(0.75, 20, 20); // Draw a bigger sphere for the head
+    
+        // Draw the equator-like line (cut sphere in half)
+        glColor3f(0.0, 0.0, 0.0);  // Set color for the equator line (black)
+        int num_segments = 100;  // Number of segments to draw a smooth circle
+        float radius = 0.75;  // Radius of the head sphere (same as the glutSolidSphere)
+        
+        glBegin(GL_LINE_LOOP);  // Start drawing the equator line
+        for (int i = 0; i < num_segments; i++) {
+            float theta = 1.0f * 3.1415926f * float(i) / float(num_segments);  // Angle calculation
+            float x = radius * cosf(theta);  // X coordinate (cosine of the angle)
+            float z = radius * sinf(theta);  // Z coordinate (sine of the angle)
+            glVertex3f(x, -0.1, z);  // Set the vertex along the equator
+        }
+        glEnd();  // End drawing the line
 
+    
+        // Draw the ears (two spheres at the ends of the equator) with surrounding cylinders
+        glColor3f(0.5, 0.5, 0.5);  // Set color for the ears gray
+        glPushMatrix();
+            glTranslatef(-0.75, -0.1, 0.0);  // Left ear position
+            glutSolidSphere(0.12, 20, 20);  // Draw left ear
+
+            // Draw a cylinder around the left ear
+            glColor3f(0.55, 0.55, 0.7);  // Set color for the cylinder
+            glPushMatrix();
+            glTranslatef(-0.08, 0.0, 0.0); // Move the cylinder to wrap around the ear
+                glRotatef(90, 0.0, 1.0, 0.0);  // Rotate to align the cylinder with the ear
+                GLUquadric* leftCylinder = gluNewQuadric();
+                gluCylinder(leftCylinder, 0.12, 0.12, 0.15, 20, 20);  // Draw the cylinder (same height as ear)
+            glPopMatrix();
+        glPopMatrix();
+
+        glColor3f(0.5, 0.5, 0.5);
+        glPushMatrix();
+            glTranslatef(0.75, -0.1, 0.0);   // Right ear position
+            glutSolidSphere(0.12, 20, 20);  // Draw right ear
+
+            // Draw a cylinder around the right ear
+            glColor3f(0.55, 0.55, 0.7); // Set color for the cylinder
+            glPushMatrix();
+                glTranslatef(-0.08, 0.0, 0.0);  // Move the cylinder to wrap around the ear
+                glRotatef(90, 0.0, 1.0, 0.0);  // Rotate to align the cylinder with the ear
+                GLUquadric* rightCylinder = gluNewQuadric();
+                gluCylinder(rightCylinder, 0.12, 0.12, 0.15, 20, 20);  // Draw the cylinder (same height as ear)
+            glPopMatrix();
+        glPopMatrix();
+
+    
+    
         // Draw the eyes (two green spheres)
         glColor3f(0.0, 1.0, 0.0);  // Set color to green
             glPushMatrix();
@@ -263,11 +311,13 @@ void display() {
         glPopMatrix();
 
         
+        
         // Draw the hip joint (rectangle)
         glPushMatrix();
             // Apply vertical shift and hip rotation
             glTranslatef(0.0, -1 + hipVerticalShift, 0.0);  // Move hip under body, apply vertical shift
             glRotatef(hipAngle, 0, 1, 0);  // Rotate hip joint
+            
 
             // ** Draw the legs before scaling the hip **
             // Left leg
@@ -320,7 +370,7 @@ void display() {
             glPopMatrix();
 
             // Scale the hip at the end
-            glColor3f(0.5, 0.0, 0.0); // Color for hip (reddish)
+            glColor3f(0.0, 0.0, 0.0); // Color for hip (reddish)
             glScalef(1.0, 0.2, 0.5);  // Scale to make hip rectangle
             glutSolidCube(1.0);       // Draw hip cube
 
@@ -566,7 +616,7 @@ int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 600);
-    glutCreateWindow("CPS511 Assignment - 3D Bot with Knee Joints");
+    glutCreateWindow("CPS511 Assignment1 - 3D Bot ");
 
     initOpenGL();
 
@@ -577,3 +627,4 @@ int main(int argc, char** argv) {
     glutMainLoop();
     return 0;
 }
+
