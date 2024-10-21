@@ -1,6 +1,7 @@
 # Bot 3D design - openGL
 
-## I made the files in Xcode and compiled them in terminal
+  + I made the files in Xcode and compiled them in terminal
+
 
 ## How to run/compile in terminal:
 - brew install glfw
