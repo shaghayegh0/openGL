@@ -17,6 +17,7 @@
 - h => Rotate hip joint
 - H => Rotate hip joint in the opposite direction
 - n => Rotate head
+- N => Rotate head in the opposite direction
 - w => Take one steo
 - W => Reset animation and move to initial position
 - t => Start walking
