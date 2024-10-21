@@ -1,7 +1,8 @@
 # Bot 3D design - openGL
 
+## I made the files in Xcode and compiled them in terminal
 
-## How to run:
+## How to run/compile in terminal:
 - brew install glfw
 - brew install freeglut  
 - g++ -framework OpenGL -framework GLUT -DGL_SILENCE_DEPRECATION -o bot main.cpp QuadMesh.cpp
